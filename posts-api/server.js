@@ -91,8 +91,9 @@ router.post('/posts', (ctx) => { // http://localhost:3000/posts
     if(typeof body.name !== 'string' || body.name.length < 1 || body.name.length > 100) {
         ctx.throw(400, 'Invalid name, it needs to be a string between 1-100 characters ');
     }
-    
-    if (typeof body.email !== 'string' || body.email.length > 100 || !body.email.includes('@')) {
+
+    const emailRegex = /^((?!\.)[\w\-_.]*[^.])(@\w+)(\.\w+(\.\w+)?[^.\W])$/gm;
+    if (typeof body.email !== 'string' || body.email.length > 100 || !emailRegex.test(body.email)) {
         ctx.throw(400, 'Invalid email, it needs to be a valid email');
     }
     if (typeof body.body !== 'string' || body.body.length < 1 || body.body.length > 500) {
@@ -114,8 +115,10 @@ router.post('/posts', (ctx) => { // http://localhost:3000/posts
         body: body.body
     };
 
-    post.push(newPost);
-    
+    posts.push(newPost);
+    ctx.status = 201;
+    ctx.set('location', `/posts/${newId}`); // define header
+    ctx.body = newPost;
 
 });
 
