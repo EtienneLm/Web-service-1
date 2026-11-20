@@ -119,8 +119,21 @@ router.post('/posts', (ctx) => { // http://localhost:3000/posts
     ctx.status = 201;
     ctx.set('location', `/posts/${newId}`); // define header
     ctx.body = newPost;
-
 });
+
+router.delete('/posts/:id', (ctx) => { 
+    const id = Number(ctx.params.id);
+    const index = posts.findIndex(post => post.id === id);
+
+    if (index < 1) {
+        ctx.status = 404;
+        ctx.body = { error: 'Post not found' };
+        return;
+    }
+    posts.splice(index, 1);
+    ctx.status = 204;
+});
+
 
 //app.use(bodyParser());
 app.use(router.routes());
