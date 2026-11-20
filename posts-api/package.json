@@ -1,15 +1,15 @@
 {
   "name": "posts-api",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Api of posts in memory",
+  "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node server.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
+  "type": "module",
   "dependencies": {
     "@koa/router": "^15.7.1",
     "koa": "^3.3.0",
