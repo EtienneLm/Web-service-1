@@ -4,7 +4,8 @@
   "description": "Api of posts in memory",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "recette": "node recette.js"
   },
   "keywords": [],
   "author": "",
