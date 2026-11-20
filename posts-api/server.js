@@ -13,7 +13,27 @@ const data = fs.readFileSync(filepath, 'utf-8');
 const posts = JSON.parse(data); 
 // console.log(posts.length);
 
-router.get('/posts', (ctx) => { // http://localhost:3000/posts?postId=2
+app.use(async (ctx, next) => {
+    try {
+        await next();
+    } catch (err) {
+        ctx.status = err.status || 500;
+        ctx.body = { 
+            error: ctx.status >= 500
+            ? 'internal error'
+            : err.message
+        };
+    }
+});
+
+app.use(bodyParser({
+    onlyError : (err, ctx) => {
+        ctx.throw(err.status || 400, err.message || 'invalid json');
+    }
+}));
+
+
+router.get('/posts', (ctx) => { // http://localhost:3000/posts?postId=1
     const postId = ctx.query.postId;
 
     if (postId !== undefined) {
@@ -30,7 +50,7 @@ router.get('/posts', (ctx) => { // http://localhost:3000/posts?postId=2
     }
     ctx.body = posts;
 }); 
-router.get('/posts/:id', (ctx) => {
+router.get('/posts/:id', (ctx) => { // http://localhost:3000/posts/1
     const id = Number(ctx.params.id);
     const post = posts.find(post => post.id === id);
 
@@ -43,9 +63,70 @@ router.get('/posts/:id', (ctx) => {
     ctx.body = post;
 });
 
-app.use(bodyParser());
+// post 
+router.post('/posts', (ctx) => { // http://localhost:3000/posts
+    const body = ctx.request.body;
+
+    if (!body || typeof body !== 'object' || Array.isArray(body)) {
+        ctx.throw(400, 'Invalid body, it needs to be a json');
+    }
+
+    const postRequiredFields = ['postId', 'name', 'email', 'body'];
+    for (const field of postRequiredFields) {
+        if (!(field in body)) {
+            ctx.throw(400, `Required field ${field} missing`);
+        }
+    }
+
+    const postAllowedFields = ['postId', 'name', 'email', 'body'];
+    for (const field of Object.keys(body)) {
+        if (!postAllowedFields.includes(field)) {
+            ctx.throw(400, `Unknown field : ${field}`);
+        }
+    }
+
+    if (!Number.isInteger(body.postId) || body.postId < 1) {
+        ctx.throw(400, 'Invalid postId, it needs to be an int > 1');
+    }
+    if(typeof body.name !== 'string' || body.name.length < 1 || body.name.length > 100) {
+        ctx.throw(400, 'Invalid name, it needs to be a string between 1-100 characters ');
+    }
+    
+    if (typeof body.email !== 'string' || body.email.length > 100 || !body.email.includes('@')) {
+        ctx.throw(400, 'Invalid email, it needs to be a valid email');
+    }
+    if (typeof body.body !== 'string' || body.body.length < 1 || body.body.length > 500) {
+        ctx.throw(400, 'Invalid body, it needs to be a string between 1-500 characters');
+    }
+
+    let newId; 
+    if (posts.length > 0) {
+        newId = Math.max(...posts.map(post => post.id)) + 1;
+    } else {
+        newId = 1;
+    }
+
+    const newPost = {
+        postId: body.postId,
+        id: newId,
+        name: body.name,
+        email: body.email,
+        body: body.body
+    };
+
+    post.push(newPost);
+    
+
+});
+
+//app.use(bodyParser());
 app.use(router.routes());
 app.use(router.allowedMethods());
+
+app.use((ctx) => {
+    ctx.status = 404;
+    ctx.body = { error: 'Unknown route', status: ctx.status };
+});
 
 app.listen(3000, () => {
      console.log('The server is up and running : http://localhost:3000');
