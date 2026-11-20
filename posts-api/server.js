@@ -11,7 +11,6 @@ const filepath = path.join(process.cwd(), 'posts.seed.json');
 const data = fs.readFileSync(filepath, 'utf-8');
 
 const posts = JSON.parse(data); 
-// console.log(posts.length);
 
 app.use(async (ctx, next) => {
     try {
@@ -146,7 +145,7 @@ router.put('/posts/:id', (ctx) => {
     }
 
     const body = ctx.request.body;
-    
+
     if (!body || typeof body !== 'object' || Array.isArray(body)) {
         ctx.throw(400, 'Invalid body, it needs to be a json');
     }
