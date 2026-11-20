@@ -25,7 +25,7 @@ router.get('/posts', (ctx) => { // http://localhost:3000/posts?postId=2
             return;
         }
 
-        ctx.body = posts.filter(posts => posts.id === number);
+        ctx.body = posts.filter(post => post.postId === number);
         return;
     }
     ctx.body = posts;
