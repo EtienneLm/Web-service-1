@@ -32,7 +32,7 @@ app.use(bodyParser({
 }));
 
 
-router.get('/posts', (ctx) => { // http://localhost:3000/posts?postId=1
+router.get('/posts', (ctx) => {
     const postId = ctx.query.postId;
 
     if (postId !== undefined) {
@@ -49,7 +49,7 @@ router.get('/posts', (ctx) => { // http://localhost:3000/posts?postId=1
     }
     ctx.body = posts;
 }); 
-router.get('/posts/:id', (ctx) => { // http://localhost:3000/posts/1
+router.get('/posts/:id', (ctx) => {
     const id = Number(ctx.params.id);
     const post = posts.find(post => post.id === id);
 
@@ -62,8 +62,7 @@ router.get('/posts/:id', (ctx) => { // http://localhost:3000/posts/1
     ctx.body = post;
 });
 
-// post 
-router.post('/posts', (ctx) => { // http://localhost:3000/posts
+router.post('/posts', (ctx) => {
     const body = ctx.request.body;
 
     if (!body || typeof body !== 'object' || Array.isArray(body)) {
@@ -116,7 +115,7 @@ router.post('/posts', (ctx) => { // http://localhost:3000/posts
 
     posts.push(newPost);
     ctx.status = 201;
-    ctx.set('location', `/posts/${newId}`); // define header
+    ctx.set('location', `/posts/${newId}`);
     ctx.body = newPost;
 });
 
@@ -193,7 +192,58 @@ router.put('/posts/:id', (ctx) => {
     ctx.body = updatePost;
 });
 
-//app.use(bodyParser());
+
+router.patch('/posts/:id', (ctx) => {
+
+    const id = Number(ctx.params.id);
+
+    const index = posts.findIndex(post => post.id === id);
+
+    if (index === -1) {
+        ctx.throw(404, 'Post introuvable');
+    }
+
+    const body = ctx.request.body;
+
+    if (!body || typeof body !== 'object' || Array.isArray(body)) {
+        ctx.throw(400, 'Invalid body, it needs to be a json');
+    }
+
+    const postRequiredFields = ['postId', 'name', 'email', 'body'];
+    for (const field of postRequiredFields) {
+        if (!(field in body)) {
+            ctx.throw(400, `Required field ${field} missing`);
+        }
+    }
+
+    const postAllowedFields = ['postId', 'name', 'email', 'body'];
+    for (const field of Object.keys(body)) {
+        if (!postAllowedFields.includes(field)) {
+            ctx.throw(400, `Unknown field : ${field}`);
+        }
+    }
+
+    if (!Number.isInteger(body.postId) || body.postId < 1) {
+        ctx.throw(400, 'Invalid postId, it needs to be an int > 1');
+    }
+    if(typeof body.name !== 'string' || body.name.length < 1 || body.name.length > 100) {
+        ctx.throw(400, 'Invalid name, it needs to be a string between 1-100 characters ');
+    }
+
+    const emailRegex = /^((?!\.)[\w\-_.]*[^.])(@\w+)(\.\w+(\.\w+)?[^.\W])$/gm;
+    if (typeof body.email !== 'string' || body.email.length > 100 || !emailRegex.test(body.email)) {
+        ctx.throw(400, 'Invalid email, it needs to be a valid email');
+    }
+    if (typeof body.body !== 'string' || body.body.length < 1 || body.body.length > 500) {
+        ctx.throw(400, 'Invalid body, it needs to be a string between 1-500 characters');
+    }
+
+    Object.assign(posts[index], body);
+
+    ctx.status = 200;
+    ctx.body = posts[index];
+});
+
 app.use(router.routes());
 app.use(router.allowedMethods());
 
