@@ -182,7 +182,7 @@ router.put('/posts/:id', (ctx) => {
 
     const updatePost = {
         postId: body.postId,
-        id: newId,
+        id: id,
         name: body.name,
         email: body.email,
         body: body.body
